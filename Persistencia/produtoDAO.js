@@ -66,7 +66,7 @@ export default class ProdutoDAO {
                 produto.precoVenda,
                 produto.qtdEstoque,
                 produto.urlImagem,
-                produto.dataValidade,
+                new Date (produto.dataValidade).toLocaleDateString(),
                 produto.categoria.codigo,
                 produto.codigo
             ]; //dados do produto
