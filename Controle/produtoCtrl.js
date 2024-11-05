@@ -77,28 +77,28 @@ export default class ProdutoCtrl {
     }
 
     editar(requisicao, resposta) {
-        //preparar o destinatário que a resposta estará no formato JSON
+        // Preparar o destinatário que a resposta estará no formato JSON
         resposta.type("application/json");
-        //Verificando se o método da requisição é POST e conteúdo é JSON
+        // Verificando se o método da requisição é POST e conteúdo é JSON
         if ((requisicao.method == 'PUT' || requisicao.method == 'PATCH') && requisicao.is("application/json")) {
-            //o código será extraída da URL (padrão REST)
+            // O código será extraída da URL (padrão REST)
             const codigo = requisicao.params.codigo;
             const descricao = requisicao.body.descricao;
             const precoCusto = requisicao.body.precoCusto;
             const precoVenda = requisicao.body.precoVenda;
             const qtdEstoque = requisicao.body.qtdEstoque;
             const urlImagem = requisicao.body.urlImagem;
-            const dataValidade = requisicao.body.dataValidade;
+            const dataValidade = new Date(requisicao.body.dataValidade).toLocaleDateString();
             const categoria = requisicao.body.categoria;
-            //validação de regra de negócio
+            // Validação de regra de negócio
             const categ = new Categoria(categoria.codigo);
             categ.consultar(categoria.codigo).then((lista) => {
                 if (lista.length > 0) {
-                    //pseudo validação
+                    // Pseudo-validação
                     if (codigo > 0 && descricao && precoCusto > 0 &&
                         precoVenda > 0 && qtdEstoque >= 0 &&
                         urlImagem && dataValidade && categoria.codigo > 0) {
-                        //alterar o produto
+                        // Alterar o produto
                         const produto = new Produto(codigo,
                             descricao, precoCusto, precoVenda,
                             qtdEstoque, urlImagem, dataValidade, categ);
@@ -115,8 +115,7 @@ export default class ProdutoCtrl {
                                     "mensagem": "Não foi possível alterar o produto: " + erro.message
                                 });
                             });
-                    }
-                    else {
+                    } else {
                         resposta.status(400).json(
                             {
                                 "status": false,
@@ -125,8 +124,7 @@ export default class ProdutoCtrl {
                         );
                     }
 
-                }
-                else {
+                } else {
                     resposta.status(400).json({
                         "status": false,
                         "mensagem": "A categoria informada não existe!"
@@ -140,8 +138,7 @@ export default class ProdutoCtrl {
                 });
             });
 
-        }
-        else {
+        } else {
             resposta.status(400).json({
                 "status": false,
                 "mensagem": "Requisição inválida! Consulte a documentação da API."
@@ -151,15 +148,15 @@ export default class ProdutoCtrl {
     }
 
     excluir(requisicao, resposta) {
-        //preparar o destinatário que a resposta estará no formato JSON
+        // Preparar o destinatário que a resposta estará no formato JSON
         resposta.type("application/json");
-        //Verificando se o método da requisição é POST e conteúdo é JSON
+        // Verificando se o método da requisição é POST e conteúdo é JSON
         if (requisicao.method == 'DELETE') {
-            //o código será extraída da URL (padrão REST)
+            // O código será extraída da URL (padrão REST)
             const codigo = requisicao.params.codigo;
-            //pseudo validação
+            // Pseudo-validação
             if (codigo > 0) {
-                //alterar o produto
+                // Alterar o produto
                 const produto = new Produto(codigo);
                 produto.excluir()
                     .then(() => {
@@ -174,8 +171,7 @@ export default class ProdutoCtrl {
                             "mensagem": "Não foi possível excluir o produto: " + erro.message
                         });
                     });
-            }
-            else {
+            } else {
                 resposta.status(400).json(
                     {
                         "status": false,
@@ -184,8 +180,7 @@ export default class ProdutoCtrl {
                 );
             }
 
-        }
-        else {
+        } else {
             resposta.status(400).json({
                 "status": false,
                 "mensagem": "Requisição inválida! Consulte a documentação da API."
@@ -198,13 +193,13 @@ export default class ProdutoCtrl {
         resposta.type("application/json");
         if (requisicao.method == "GET") {
             let codigo = requisicao.params.codigo;
-            //evitar que código tenha valor undefined
+            // Evitar que código tenha valor undefined
             if (isNaN(codigo)) {
                 codigo = "";
             }
 
             const produto = new Produto();
-            //método consultar retorna uma lista de produtos
+            // Método consultar retorna uma lista de produtos
             produto.consultar(codigo)
                 .then((listaProdutos) => {
                     resposta.status(200).json(listaProdutos
@@ -223,8 +218,7 @@ export default class ProdutoCtrl {
                     );
                 });
 
-        }
-        else {
+        } else {
             resposta.status(400).json(
                 {
                     "status": false,
@@ -233,5 +227,4 @@ export default class ProdutoCtrl {
             );
         }
     }
-
 }
