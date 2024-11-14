@@ -23,7 +23,7 @@ export default class ProdutoDAO {
                 prod_dataValidade VARCHAR(11) NOT NULL,
                 fk_codigo_cat INT NOT NULL,
                 CONSTRAINT pk_produto PRIMARY KEY(prod_codigo),
-                CONSTRAINT fk_categoria FOREIGN KEY(fk_codigo_cat) REFERENCES categoria(id) 
+                CONSTRAINT fk_categoria FOREIGN KEY(fk_codigo_cat) REFERENCES categoria(codigo) 
             )
         `;
             await conexao.execute(sql);
@@ -47,7 +47,7 @@ export default class ProdutoDAO {
                 produto.qtdEstoque,
                 produto.urlImagem,
                 produto.dataValidade,
-                produto.categoria.id
+                produto.categoria.codigo
             ]; //dados do produto
             const resultado = await conexao.execute(sql, parametros);
             produto.codigo = resultado[0].insertId;
@@ -68,7 +68,7 @@ export default class ProdutoDAO {
                 produto.qtdEstoque,
                 produto.urlImagem,
                 produto.dataValidade,
-                produto.categoria.id,
+                produto.categoria.codigo,
                 produto.codigo
             ]; //dados do produto
             await conexao.execute(sql, parametros);
@@ -83,20 +83,20 @@ export default class ProdutoDAO {
         let parametros = [];
         if (isNaN(parseInt(termo))) {
             sql = `SELECT * FROM produto p
-                   INNER JOIN categoria c ON p.fk_codigo_cat = c.id
+                   INNER JOIN categoria c ON p.fk_codigo_cat = c.codigo
                    WHERE prod_descricao LIKE ?`;
             parametros = ['%' + termo + '%'];
         }
         else {
             sql = `SELECT * FROM produto p
-                   INNER JOIN categoria c ON p.fk_codigo_cat = c.id 
-                   WHERE prod_codigo = ?`;
+                   INNER JOIN categoria c ON p.fk_codigo_cat = c.codigo 
+                   WHERE prod_codigo = ?`
             parametros = [termo];
         }
         const [linhas, campos] = await conexao.execute(sql, parametros);
         let listaProdutos = [];
         for (const linha of linhas) {
-            const categoria = new Categoria(linha['id'],linha["descricao"],linha["tipo"]);    
+            const categoria = new Categoria(linha['codigo'],linha["descricao"]);    
             const produto = new Produto(
                 linha['prod_codigo'],
                 linha['prod_descricao'],
