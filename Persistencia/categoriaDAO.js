@@ -12,9 +12,10 @@ export default class CategoriaDAO{
             const conexao = await conectar();
             const sql = `
                 CREATE TABLE IF NOT EXISTS categoria(
-                    codigo INT NOT NULL AUTO_INCREMENT,
+                    id INT NOT NULL AUTO_INCREMENT,
                     descricao VARCHAR(50) NOT NULL,
-                    CONSTRAINT pk_categoria PRIMARY KEY(codigo)
+                    tipo VARCHAR(50) NOT NULL,
+                    CONSTRAINT pk_categoria PRIMARY KEY(id)
                 );
             `;
             await conexao.execute(sql);
@@ -29,8 +30,10 @@ export default class CategoriaDAO{
     async gravar(categoria){
         if (categoria instanceof Categoria){
             const conexao = await conectar();
-            const sql = "INSERT INTO categoria(descricao) VALUES (?)";
-            const parametros = [categoria.descricao];
+            const sql = "INSERT INTO categoria(id) VALUES (?)";
+            let parametros = [    categoria.descricao, 
+                                    categoria.tipo
+                                ];
             const resultado = await conexao.execute(sql,parametros);
             categoria.codigo = resultado[0].insertId;
             await conexao.release();
@@ -40,8 +43,8 @@ export default class CategoriaDAO{
     async editar(categoria){
         if (categoria instanceof Categoria){
             const conexao = await conectar();
-            const sql = "UPDATE categoria SET descricao = ? WHERE codigo = ?";
-            const parametros = [categoria.descricao, categoria.codigo];
+            const sql = "UPDATE categoria SET descricao = ?, tipo = ? WHERE id = ?";
+            const parametros = [categoria.descricao, categoria.tipo, categoria.codigo];
             await conexao.execute(sql,parametros);
             await conexao.release();
         }
@@ -50,7 +53,7 @@ export default class CategoriaDAO{
     async excluir(categoria){
         if (categoria instanceof Categoria){
             const conexao = await conectar();
-            const sql = "DELETE FROM categoria WHERE codigo = ?";
+            const sql = "DELETE FROM categoria WHERE id = ?";
             const parametros = [categoria.codigo];
             await conexao.execute(sql,parametros);
             await conexao.release();
@@ -65,7 +68,7 @@ export default class CategoriaDAO{
             parametros.push("%"+termo+"%");
         }
         else{
-            sql = "SELECT * FROM categoria WHERE codigo = ? ORDER BY descricao";
+            sql = "SELECT * FROM categoria WHERE id = ? ORDER BY id";
             parametros.push(termo);
         }
         const conexao = await conectar();
@@ -74,13 +77,11 @@ export default class CategoriaDAO{
         let listaCategoria=[];
         for (const registro of registros){
             const categoria = new Categoria(registro['codigo'],
-                                            registro['descricao']    
+                                            registro['descricao'],
+                                            registro['tipo']    
             );
             listaCategoria.push(categoria);
         }
-
         return listaCategoria;
-
     }
-
 }
