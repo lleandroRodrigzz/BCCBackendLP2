@@ -18,7 +18,7 @@ export default class ClienteDAO{
                     cidade VARCHAR(50) NOT NULL,
                     estado VARCHAR(20) NOT NULL,
                     cpf VARCHAR(20) NOT NULL,
-                    CONSTRAINT pk_usuario PRIMARY KEY(cpf)
+                    CONSTRAINT pk_cliente PRIMARY KEY(codigo)
                 );
             `;
             await conexao.execute(sql);
