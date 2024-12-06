@@ -1,218 +1,168 @@
-//É a classe responsável por traduzir requisições HTTP e produzir respostas HTTP
 import Fornecedor from "../Modelo/fornecedor.js";
 import Categoria from "../Modelo/categoria.js";
 
 export default class FornecedorCtrl {
-
+    // Método para gravar um fornecedor
     gravar(requisicao, resposta) {
-        //preparar o destinatário que a resposta estará no formato JSON
         resposta.type("application/json");
-        //Verificando se o método da requisição é POST e conteúdo é JSON
-        if (requisicao.method == 'POST' && requisicao.is("application/json")) {
-            const nome = requisicao.body.nome;
-            const categoria = requisicao.body.categoria;
-            const email = requisicao.body.email;
-            const cidade = requisicao.body.cidade;
-            const estado = requisicao.body.estado;
-            const cnpj = requisicao.body.cnpj;
-            const categ = new Categoria(categoria.codigo);
-            categ.consultar(categoria.codigo).then((listaCategorias) => {
-                if (listaCategorias.length > 0) {
-                    //pseudo validação
-                    if (nome && categoria.codigo > 0 && email && cidade && estado && cnpj) {
-                        //gravar o produto
-                        const fornecedor = new Fornecedor(0, nome, categ, email, cidade, estado, cnpj);
-                        fornecedor.incluir()
-                            .then(() => {
-                                resposta.status(200).json({
-                                    "status": true,
-                                    "mensagem": "Fornecedor adicionado com sucesso!",
-                                    "codigo": fornecedor.codigo
-                                });
-                            })
-                            .catch((erro) => {
-                                resposta.status(500).json({
-                                    "status": false,
-                                    "mensagem": "Não foi possível incluir o fornecedor: " + erro.message
-                                });
-                            });
-                    }
-                    else {
-                        resposta.status(400).json(
-                            {
-                                "status": false,
-                                "mensagem": "Informe corretamente todos os dados de um fornecedor conforme documentação da API."
-                            }
-                        );
-                    }
-                }
-                else {
-                    resposta.status(400).json({
-                        "status": false,
-                        "mensagem": "A categoria informada não existe!"
-                    });
-                }
-            }).catch((erro) => {
-                resposta.status(500).json({
-                    "status": false,
-                    "mensagem": "Não foi possível validar a categoria: " + erro.message
+        if (requisicao.method === 'POST' && requisicao.is("application/json")) {
+            const { nome, categoria, email, cidade, estado, cnpj } = requisicao.body;
+
+            if (!nome || !categoria?.codigo || !email || !cidade || !estado || !cnpj) {
+                return resposta.status(400).json({
+                    status: false,
+                    mensagem: "Dados incompletos. Consulte a documentação da API."
                 });
-            });
-        }
-        else {
-            resposta.status(400).json({
-                "status": false,
-                "mensagem": "Requisição inválida! Consulte a documentação da API."
-            });
+            }
 
-        }
-
-    }
-
-    editar(requisicao, resposta) {
-        //preparar o destinatário que a resposta estará no formato JSON
-        resposta.type("application/json");
-        //Verificando se o método da requisição é POST e conteúdo é JSON
-        if ((requisicao.method == 'PUT' || requisicao.method == 'PATCH') && requisicao.is("application/json")) {
-            //o código será extraída da URL (padrão REST)
-            const codigo = requisicao.params.codigo;
-            const nome = requisicao.body.nome;
-            const categoria = requisicao.body.categoria;
-            const email = requisicao.body.email;
-            const cidade = requisicao.body.cidade;
-            const estado = requisicao.body.estado;
-            const cnpj = requisicao.body.cnpj;
-            const categ = new Categoria(categoria.codigo);
-            categ.consultar(categoria.codigo).then((lista) => {
-                if (lista.length > 0) {
-                    //pseudo validação
-                    if (codigo > 0 && nome && categoria.codigo > 0 && email && cidade && estado && cnpj) {
-                        //alterar o produto
-                        const fornecedor = new Fornecedor(codigo, nome, categ, email, cidade, estado, cnpj);
-                        fornecedor.alterar()
-                            .then(() => {
-                                resposta.status(200).json({
-                                    "status": true,
-                                    "mensagem": "Fornecedor alterado com sucesso!",
-                                });
-                            })
-                            .catch((erro) => {
-                                resposta.status(500).json({
-                                    "status": false,
-                                    "mensagem": "Não foi possível alterar o fornecedor: " + erro.message
-                                });
-                            });
-                    }
-                    else {
-                        resposta.status(400).json(
-                            {
-                                "status": false,
-                                "mensagem": "Informe corretamente todos os dados de um fornecedor conforme documentação da API."
-                            }
-                        );
-                    }
-
-                }
-                else {
-                    resposta.status(400).json({
-                        "status": false,
-                        "mensagem": "A categoria informada não existe!"
+            const categoriaObj = new Categoria(categoria.codigo);
+            categoriaObj.consultar(categoria.codigo).then(listaCategorias => {
+                if (listaCategorias.length === 0) {
+                    return resposta.status(400).json({
+                        status: false,
+                        mensagem: "Categoria inválida!"
                     });
                 }
 
-            }).catch((erro) => {
-                resposta.status(500).json({
-                    "status": false,
-                    "mensagem": "Não foi possível validar a categoria: " + erro.message
-                });
-            });
-
-        }
-        else {
-            resposta.status(400).json({
-                "status": false,
-                "mensagem": "Requisição inválida! Consulte a documentação da API."
-            });
-
-        }
-    }
-
-    excluir(requisicao, resposta) {
-        //preparar o destinatário que a resposta estará no formato JSON
-        resposta.type("application/json");
-        //Verificando se o método da requisição é POST e conteúdo é JSON
-        if (requisicao.method == 'DELETE') {
-            //o código será extraída da URL (padrão REST)
-            const codigo = requisicao.params.codigo;
-            //pseudo validação
-            if (codigo > 0) {
-                //alterar o produto
-                const fornecedor = new Fornecedor(codigo);
-                fornecedor.excluir()
+                const fornecedor = new Fornecedor(0, nome, categoriaObj, email, cidade, estado, cnpj);
+                fornecedor.incluir()
                     .then(() => {
-                        resposta.status(200).json({
-                            "status": true,
-                            "mensagem": "Fornecedor excluído com sucesso!",
+                        resposta.status(201).json({
+                            status: true,
+                            mensagem: "Fornecedor cadastrado com sucesso!",
+                            codigo: fornecedor.codigo
                         });
                     })
-                    .catch((erro) => {
+                    .catch(erro => {
                         resposta.status(500).json({
-                            "status": false,
-                            "mensagem": "Não foi possível excluir o fornecedor: " + erro.message
+                            status: false,
+                            mensagem: "Erro ao cadastrar fornecedor: " + erro.message
                         });
                     });
-            }
-            else {
-                resposta.status(400).json(
-                    {
-                        "status": false,
-                        "mensagem": "Informe um código válido de um fornecedor conforme documentação da API."
-                    }
-                );
-            }
-
-        }
-        else {
-            resposta.status(400).json({
-                "status": false,
-                "mensagem": "Requisição inválida! Consulte a documentação da API."
+            }).catch(erro => {
+                resposta.status(500).json({
+                    status: false,
+                    mensagem: "Erro ao validar categoria: " + erro.message
+                });
             });
-
+        } else {
+            resposta.status(400).json({
+                status: false,
+                mensagem: "Requisição inválida. Consulte a documentação da API."
+            });
         }
     }
 
-    consultar(requisicao, resposta) {
+    // Método para editar um fornecedor
+    editar(requisicao, resposta) {
         resposta.type("application/json");
-        if (requisicao.method == "GET") {
-            let codigo = requisicao.params.codigo;
-            //evitar que código tenha valor undefined
-            if (isNaN(codigo)) {
-                codigo = "";
+        if ((requisicao.method === 'PUT' || requisicao.method === 'PATCH') && requisicao.is("application/json")) {
+            const codigo = requisicao.params.codigo;
+            const { nome, categoria, email, cidade, estado, cnpj } = requisicao.body;
+
+            if (!codigo || !nome || !categoria?.codigo || !email || !cidade || !estado || !cnpj) {
+                return resposta.status(400).json({
+                    status: false,
+                    mensagem: "Dados incompletos. Consulte a documentação da API."
+                });
             }
 
-            const fornecedor = new Fornecedor();
-            //método consultar retorna uma lista de produtos
-            fornecedor.consultar(codigo)
-                .then((listaFornecedores) => {
-                    resposta.status(200).json(listaFornecedores);
-                })
-                .catch((erro) => {
-                    resposta.status(500).json(
-                        {
-                            "status": false,
-                            "mensagem": "Erro ao consultar fornecedores: " + erro.message
-                        }
-                    );
-                });
-
-        }
-        else {
-            resposta.status(400).json(
-                {
-                    "status": false,
-                    "mensagem": "Requisição inválida! Consulte a documentação da API."
+            const categoriaObj = new Categoria(categoria.codigo);
+            categoriaObj.consultar(categoria.codigo).then(listaCategorias => {
+                if (listaCategorias.length === 0) {
+                    return resposta.status(400).json({
+                        status: false,
+                        mensagem: "Categoria inválida!"
+                    });
                 }
-            );
+
+                const fornecedor = new Fornecedor(codigo, nome, categoriaObj, email, cidade, estado, cnpj);
+                fornecedor.alterar()
+                    .then(() => {
+                        resposta.status(200).json({
+                            status: true,
+                            mensagem: "Fornecedor alterado com sucesso!"
+                        });
+                    })
+                    .catch(erro => {
+                        resposta.status(500).json({
+                            status: false,
+                            mensagem: "Erro ao alterar fornecedor: " + erro.message
+                        });
+                    });
+            }).catch(erro => {
+                resposta.status(500).json({
+                    status: false,
+                    mensagem: "Erro ao validar categoria: " + erro.message
+                });
+            });
+        } else {
+            resposta.status(400).json({
+                status: false,
+                mensagem: "Requisição inválida. Consulte a documentação da API."
+            });
+        }
+    }
+
+    // Método para excluir um fornecedor
+    excluir(requisicao, resposta) {
+        resposta.type("application/json");
+        if (requisicao.method === 'DELETE') {
+            const codigo = requisicao.params.codigo;
+
+            if (!codigo) {
+                return resposta.status(400).json({
+                    status: false,
+                    mensagem: "Informe um código válido para exclusão."
+                });
+            }
+
+            const fornecedor = new Fornecedor(codigo);
+            fornecedor.excluir()
+                .then(() => {
+                    resposta.status(200).json({
+                        status: true,
+                        mensagem: "Fornecedor excluído com sucesso!"
+                    });
+                })
+                .catch(erro => {
+                    resposta.status(500).json({
+                        status: false,
+                        mensagem: "Erro ao excluir fornecedor: " + erro.message
+                    });
+                });
+        } else {
+            resposta.status(400).json({
+                status: false,
+                mensagem: "Requisição inválida. Consulte a documentação da API."
+            });
+        }
+    }
+
+    // Método para consultar fornecedores
+    consultar(requisicao, resposta) {
+        resposta.type("application/json");
+        if (requisicao.method === 'GET') {
+            const codigo = requisicao.params.codigo || "";
+            const termo = isNaN(parseInt(codigo)) ? requisicao.query.nome || "" : codigo;
+
+            const fornecedor = new Fornecedor();
+            fornecedor.consultar(termo)
+                .then(listaFornecedores => {
+                    const fornecedoresCompletos = listaFornecedores.map(fornecedor => fornecedor.toJSON());
+                    resposta.status(200).json(fornecedoresCompletos);
+                })
+                .catch(erro => {
+                    resposta.status(500).json({
+                        status: false,
+                        mensagem: "Erro ao consultar fornecedores: " + erro.message
+                    });
+                });
+        } else {
+            resposta.status(400).json({
+                status: false,
+                mensagem: "Requisição inválida. Consulte a documentação da API."
+            });
         }
     }
 }
