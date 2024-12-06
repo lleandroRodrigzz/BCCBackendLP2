@@ -2,17 +2,29 @@ import UsuarioDAO from "../Persistencia/usuarioDAO.js";
 
 export default class Usuario {
     // Atributos privados usando a sintaxe #
+    #codigo
     #nomeUsuario;
     #emailUsuario;
     #senhaUsuario;
     #tipoUsuario;
 
     // Construtor da classe
-    constructor(nomeUsuario, emailUsuario, senhaUsuario, tipoUsuario) {
+    constructor(codigo,nomeUsuario, emailUsuario, senhaUsuario, tipoUsuario) {
+        this.#codigo = codigo;
         this.#nomeUsuario = nomeUsuario;       // Atribuindo valor ao atributo privado
         this.#emailUsuario = emailUsuario;  // Atribuindo valor ao atributo privado
         this.#senhaUsuario = senhaUsuario;
         this.#tipoUsuario = tipoUsuario;
+    }
+
+    // Método get para o atributo codigo
+    get codigo() {
+        return this.#codigo;
+    }
+
+    // Método set para o atributo codigo
+    set codigo(value) {
+        this.#codigo = value;
     }
 
     // Método get para o atributo codigo
@@ -58,6 +70,7 @@ export default class Usuario {
     // Método toJSON para conversão em JSON
     toJSON() {
         return {
+            codigo: this.#codigo,
             nomeUsuario: this.#nomeUsuario,
             emailUsuario: this.#emailUsuario,
             senhaUsuario: this.#senhaUsuario,
